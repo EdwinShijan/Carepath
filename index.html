@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NITJ Dispensary Management System</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <img class="brand-logo" src="logo.png" alt="NITJ Logo" width="52" height="52" />
+        <div>
+          <h1>NITJ Dispensary Management System</h1>
+          <p>Patient care, appointments, inventory, and referrals in one portal.</p>
+        </div>
+      </div>
+      <button id="btn-open-login" class="btn btn-primary">Login</button>
+    </header>
+
+    <main class="content">
+      <section class="hero-panel">
+        <div class="hero-copy">
+          <h2>Secure, role-based campus health management</h2>
+          <p>Book appointments, view medical records, manage inventory, and refer emergency cases through a clean and responsive interface.</p>
+          <div class="hero-actions">
+            <button id="hero-book" class="btn btn-primary">Start Booking</button>
+          </div>
+        </div>
+        <div class="hero-cards">
+          <article class="info-card">
+            <h3>Appointment Booking</h3>
+            <p>Choose doctors, select slots, and reserve consultations quickly.</p>
+          </article>
+          <article class="info-card">
+            <h3>Medical Records</h3>
+            <p>Doctors and students can manage and view secure treatment histories.</p>
+          </article>
+          <article class="info-card">
+            <h3>Inventory Alerts</h3>
+            <p>Track medicines, update stock, and receive low-availability notices.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="features-panel" id="features">
+        <div class="feature-item">
+          <h3>Secure Login & Roles</h3>
+          <p>Student, faculty, doctor, and pharmacist accounts with password-backed authentication.</p>
+        </div>
+        <div class="feature-item">
+          <h3>Responsive Interface</h3>
+          <p>Designed to work on desktops, tablets, and mobile screens with a clean modern aesthetic.</p>
+        </div>
+        <div class="feature-item">
+          <h3>Live API & Database</h3>
+          <p>Appointments, medical history, inventory, referrals, and notifications persist in SQLite.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>NITJ Dispensary Management System</p>
+    </footer>
+  </div>
+
+  <div class="modal-backdrop hidden" id="login-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Login to UDMS</h2>
+        <button class="modal-close" id="close-login">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="auth-mode-toggle">
+          <button type="button" id="auth-mode-login" class="btn btn-secondary auth-tab active">Sign in</button>
+          <button type="button" id="auth-mode-register" class="btn btn-secondary auth-tab">Create account</button>
+        </div>
+        <p class="auth-hint" id="auth-hint">
+          Use your university ID and password. New users must register first (doctors: use the exact directory name).
+        </p>
+
+        <form id="login-form" class="auth-form">
+          <label for="login-user-id">University ID</label>
+          <input id="login-user-id" type="text" placeholder="Enter your ID" required autocomplete="username" />
+
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" placeholder="Enter password" required autocomplete="current-password" />
+
+          <button type="submit" class="btn btn-primary">Sign In</button>
+          <div class="info-note" id="login-status"></div>
+        </form>
+
+        <form id="register-form" class="auth-form hidden">
+          <label for="reg-role">Role</label>
+          <select id="reg-role" required>
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+            <option value="doctor">Doctor</option>
+            <option value="pharmacist">Pharmacist</option>
+          </select>
+
+          <label for="reg-name">Full name</label>
+          <input id="reg-name" type="text" placeholder="As on university records (doctors: match directory)" required />
+
+          <label for="reg-user-id">University ID</label>
+          <input id="reg-user-id" type="text" placeholder="Your university ID" required autocomplete="username" />
+
+          <label for="reg-password">Password</label>
+          <input id="reg-password" type="password" placeholder="Choose a password" required autocomplete="new-password" />
+
+          <button type="submit" class="btn btn-primary">Create account</button>
+          <div class="info-note" id="register-status"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard hidden" id="dashboard">
+    <aside class="sidebar">
+      <div class="profile-card">
+        <div class="avatar"></div>
+        <div>
+          <h3 id="profile-name">Welcome</h3>
+          <p id="profile-role">Role</p>
+        </div>
+      </div>
+      <nav class="nav-menu">
+        <button class="nav-link active" data-view="appointments">Appointments</button>
+        <button class="nav-link" data-view="history">Medical History</button>
+        <button class="nav-link" data-view="inventory">Inventory</button>
+        <button class="nav-link" data-view="referrals">Emergency Referral</button>
+        <button class="nav-link" data-view="notifications">Notifications</button>
+      </nav>
+      <button id="logout-btn" class="btn btn-secondary">Logout</button>
+    </aside>
+
+    <section class="dashboard-main">
+      <div class="dashboard-header">
+        <div>
+          <h2 id="main-title">Appointments</h2>
+          <p id="main-description">Manage bookings, view available doctors, and confirm your schedule.</p>
+        </div>
+        <div class="dashboard-meta">
+          <span id="session-message">Signed in</span>
+        </div>
+      </div>
+
+      <div id="view-appointments" class="view-panel active">
+        <div class="panel-grid">
+          <div class="panel-card">
+            <h3>Book an Appointment</h3>
+            <div class="form-group">
+              <label for="doctor-select">Select Doctor</label>
+              <select id="doctor-select"></select>
+            </div>
+            <div class="form-group">
+              <label for="appointment-date">Select Date</label>
+              <input id="appointment-date" type="date" />
+            </div>
+            <div class="form-group">
+              <label for="time-slot">Select Time</label>
+              <select id="time-slot"></select>
+            </div>
+            <button id="book-appointment" class="btn btn-primary">Book Appointment</button>
+            <div class="info-note" id="appointment-status"></div>
+          </div>
+
+          <div class="panel-card panel-table-card">
+            <h3>Upcoming Appointments</h3>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr><th>ID</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th></tr>
+                </thead>
+                <tbody id="appointments-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-history" class="view-panel">
+        <div class="panel-grid">
+          <div class="panel-card hidden" id="doctor-record-card">
+            <h3>Log patient visit</h3>
+            <p class="muted">Record a consultation for a patient (student or faculty) by their university ID.</p>
+            <div class="form-group" id="patient-id-group">
+              <label for="record-patient-id">Patient university ID</label>
+              <input id="record-patient-id" type="text" placeholder="e.g. student001" />
+            </div>
+            <div class="form-group">
+              <label for="record-date">Visit date</label>
+              <input id="record-date" type="date" />
+            </div>
+            <div class="form-group">
+              <label for="record-diagnosis">Diagnosis</label>
+              <input id="record-diagnosis" type="text" placeholder="Brief diagnosis" />
+            </div>
+            <div class="form-group">
+              <label for="record-prescription">Prescription</label>
+              <input id="record-prescription" type="text" placeholder="Medicines or instructions" />
+            </div>
+            <div class="form-group">
+              <label for="record-notes">Notes</label>
+              <input id="record-notes" type="text" placeholder="Additional notes" />
+            </div>
+            <button type="button" id="submit-medical-record" class="btn btn-primary">Save to history</button>
+            <div class="info-note" id="record-status"></div>
+          </div>
+          <div class="panel-card panel-table-card">
+            <h3>Medical History</h3>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr><th>Date</th><th>Patient</th><th>Diagnosis</th><th>Prescription</th><th>Notes</th></tr>
+                </thead>
+                <tbody id="history-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-inventory" class="view-panel">
+        <div class="panel-grid">
+          <div class="panel-card">
+            <h3>Medicine Inventory</h3>
+            <div class="search-box">
+              <input id="inventory-search" type="search" placeholder="Search medicine" />
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr><th>Medicine</th><th>Quantity</th><th>Status</th><th>Action</th></tr>
+                </thead>
+                <tbody id="inventory-list"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel-card stock-update-card">
+            <h3>Update Stock</h3>
+            <div class="form-group">
+              <label for="update-medicine">Medicine</label>
+              <select id="update-medicine"></select>
+            </div>
+            <div class="form-group">
+              <label for="update-quantity">Quantity</label>
+              <input id="update-quantity" type="number" min="0" value="10" />
+            </div>
+            <button id="update-stock" class="btn btn-primary">Update Stock</button>
+            <div class="info-note" id="inventory-status"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-referrals" class="view-panel">
+        <div class="panel-grid single">
+          <div class="panel-card">
+            <h3>Emergency Referral</h3>
+            <p>Doctors and Pharmacists can select a nearby hospital and record the referral details.</p>
+            <div class="form-group">
+              <label for="referral-patient-id">Patient University ID</label>
+              <input id="referral-patient-id" type="text" placeholder="e.g. student001" />
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr><th>Hospital</th><th>Facility</th><th>Contact</th><th>Action</th></tr>
+                </thead>
+                <tbody id="hospital-list"></tbody>
+              </table>
+            </div>
+            <div class="info-note" id="referral-status"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-notifications" class="view-panel">
+        <div class="panel-grid single">
+          <div class="panel-card">
+            <h3>Notifications</h3>
+            <div class="notification-list" id="notification-feed"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
